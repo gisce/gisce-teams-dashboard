@@ -1,24 +1,30 @@
-import logo from './logo.svg';
 import './App.css';
+import { Grommet } from "grommet";
+import LoginForm from "./Components/Login";
+import Dashboard from "./Components/Dashboard";
+import { ProvideAuth } from "./Components/Auth";
+import PrivateRoute from "./Components/Route";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ProvideAuth>
+      <Router>
+        <Grommet>
+          <Switch>
+            <Route path="/login">
+              <LoginForm />
+            </Route>
+            <PrivateRoute path="/">
+              <Dashboard />
+            </PrivateRoute>
+            <PrivateRoute path="/dashboard">
+              <Dashboard />
+            </PrivateRoute>
+          </Switch>
+        </Grommet>
+      </Router>
+    </ProvideAuth>
   );
 }
 
