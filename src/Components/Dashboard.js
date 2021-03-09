@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import _ from "underscore";
 import { useAuth } from "./Auth";
-import { Grommet, Group } from "grommet-icons";
-import { Box, Grid, Card, CardHeader, Heading, CardBody, Meter, Paragraph, CardFooter, Text, Spinner } from "grommet";
+import { Grommet, Group, Update } from "grommet-icons";
+import {
+  Box, Grid, Card, CardHeader, Heading, CardBody, Meter,
+  Paragraph, CardFooter, Text, Spinner, Button
+} from "grommet";
 
 
 const graphColors = {
@@ -82,6 +85,9 @@ const Dashboard = ({ props }) => {
   })
   return (
     <Box fill="vertical" overflow="auto" align="center" flex="grow" pad="medium">
+      <Box align="end" justify="center" fill="horizontal" pad="medium">
+        <Button label="Update" icon={<Update />} primary disabled={loading} onClick={() => setLoading(true)} />
+      </Box>
       {loading && <Spinner size="large" />}
       <Grid fill="horizontal" columns="small" gap="large" pad="medium">
         {teamCards}
