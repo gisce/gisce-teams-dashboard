@@ -59,7 +59,7 @@ const Dashboard = ({ props }) => {
         </Heading>
       </CardHeader>
       <CardBody pad="small" justify="start" direction="column" align="center">
-        <Meter values={meterValues} type="circle" size="small" thickness="large" round />
+        <Meter values={meterValues} type="circle" size="small" thickness="medium" round />
         <Box align="start" justify="center" gap="small" pad="xsmall">
           {meterValues.map(v => (
             <Box align="center" justify="center" direction="row" pad="xsmall" gap="small">

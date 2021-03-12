@@ -4,7 +4,7 @@ import axios from "axios";
 import _ from "underscore";
 import MD5 from "crypto-js/md5";
 import { useAuth } from "./Auth";
-import { InProgress } from "grommet-icons";
+import { InProgress, User } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
 import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
@@ -28,7 +28,7 @@ const Board = ({ props }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours`, {
+        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name`, {
           headers: {
             Authorization: `token ${auth.token}`
           }
@@ -48,7 +48,38 @@ const Board = ({ props }) => {
   const groupedTasks = _.groupBy(project.task_ids, t => {
     const stage = t.stage_id ?? { name: "undefined" };
     return stage.name;
-  })
+  });
+
+
+  const UsersResume = ({ stage }) => {
+    const users = _.groupBy(groupedTasks[stage], t => {
+      const user = t.user_id ?? { name: "undefined", email: null };
+      return user.name
+    });
+    return (
+      <Box direction="column" align="start" fill="horizontal">
+        <Heading color={graphColors[stage]}>{stage} planned Hours</Heading>
+      <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
+        {_.pairs(users).map(item => {
+          if (item[0] === "undefined") {
+            return null;
+          }
+          const total_planned_hours = item[1].reduce((a, b) => a + b.planned_hours, 0)
+          const total_effective_hours = item[1].reduce((a, b) => a + b.effective_hours, 0)
+          return (
+            <Box align="center">
+              <Gravatar email={item[1][0].user_id.address_id.email} />
+              {item[1][0].user_id.name}
+              <Text>{total_planned_hours} h</Text>
+              <Text>{total_effective_hours} h</Text>
+            </Box>
+          )
+        }
+        )}
+      </Box>
+      </Box>
+    )
+  }
 
   const columns = _.pairs(groupedTasks).map(item => (
     <Box key={item[0]} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[item[0]] }}>
@@ -94,6 +125,8 @@ const Board = ({ props }) => {
         </Box>
       </Box>
       {loading && <Spinner size="large" />}
+      <UsersResume stage="Current IT" />
+      <UsersResume stage="Doing" />
       <Box fill="vertical" overflow="auto" align="top" flex="grow" direction="row" pad="large" gap="medium">
         {columns}
       </Box>
