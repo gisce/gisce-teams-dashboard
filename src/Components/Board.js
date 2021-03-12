@@ -12,7 +12,7 @@ import { LinkPrevious, Update } from "grommet-icons";
 
 
 const Gravatar = ({ email }) => {
-  return (<Avatar align="center" flex={false} justify="center" overflow="hidden" round="full" src={`https://www.gravatar.com/avatar/${MD5(email).toString()}?d=identicon`}
+  return (<Avatar title={email} align="center" flex={false} justify="center" overflow="hidden" round="full" src={`https://www.gravatar.com/avatar/${MD5(email).toString()}?d=identicon`}
   />)
 }
 
@@ -28,7 +28,7 @@ const Board = ({ props }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email`, {
+        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours`, {
           headers: {
             Authorization: `token ${auth.token}`
           }
@@ -66,9 +66,9 @@ const Board = ({ props }) => {
               </Heading>
             </CardHeader>
             <CardFooter align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
-              <Box align="center" justify="center" fill="horizontal" direction="row">
-                <InProgress />
-                <Text>44h</Text>
+              <Box align="center" justify="center" fill="horizontal" direction="row" gap="small">
+                <InProgress size="small" />
+                <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
               </Box>
               <Box align="end" justify="center" fill="horizontal">
                 {task.user_id &&
