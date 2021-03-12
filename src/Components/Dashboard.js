@@ -2,28 +2,28 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import _ from "underscore";
 import { useAuth } from "./Auth";
-import { Grommet, Group, Update } from "grommet-icons";
+import { Grommet, Group, Update, Columns } from "grommet-icons";
+import { useHistory } from "react-router-dom";
 import {
   Box, Grid, Card, CardHeader, Heading, CardBody, Meter,
   Paragraph, CardFooter, Text, Spinner, Button
 } from "grommet";
 
 
-const graphColors = {
+export const graphColors = {
   "Backlog": "graph-0",
   "Catch-and-fire": "status-critical",
   "Current IT": "graph-1",
   "Doing": "graph-2",
   "Done": "graph-3",
   "undefined": "accent-4"
-
-
 }
 
 const Dashboard = ({ props }) => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const auth = useAuth();
+  const history = useHistory();
 
   useEffect(() => {
     async function fetchData() {
@@ -73,12 +73,12 @@ const Dashboard = ({ props }) => {
         </Box>
       </CardBody>
       <CardFooter align="center" direction="row" flex={false} justify="center" gap="medium" pad="small">
-        <Box align="center" justify="center" direction="row" gap="small">
-          <Group />
-          <Text>
-            {team.member_ids.length} members
-
-    </Text>
+        <Box align="center" justify="center" direction="column" gap="small">
+          <Button label="Go to board" icon={<Columns />} primary onClick={() => history.push(`/team/${team.id}`)} />
+          <Box direction="row" fill="horizontal" gap="small" justify="center">
+            <Group />
+            <Text>{team.member_ids.length} members</Text>
+          </Box>
         </Box>
       </CardFooter>
     </Card>)
