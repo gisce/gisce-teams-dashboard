@@ -7,14 +7,14 @@ import { useAuth } from "./Auth";
 import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
-import { Box, Heading, Card, CardHeader, CardBody, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
+import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
 import { LinkPrevious, Update } from "grommet-icons";
 
 const STATES_COLORS = {
   draft: "status-unknown",
   open: "status-ok",
   pending: "status-warning",
-  cancel: "status-critical",
+  cancelled: "status-critical",
   done: "status-disabled"
 }
 
@@ -24,13 +24,77 @@ const Gravatar = ({ email }) => {
   />)
 }
 
+const LeterAvatar = ({ user }) => {
+  const color = (text) => {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = text.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    var colour = '#';
+    for (let i = 0; i < 3; i++) {
+      var value = (hash >> (i * 8)) & 0xFF;
+      colour += ('00' + value.toString(16)).substr(-2);
+    }
+    return colour;
+  }
+  const userColor = color(user.name);
+  return (
+    <Box align="center" justify="center" border={{ "color": userColor, "style": "solid", "size": "medium", "side": "all" }} gap="xxsmall" pad="xsmall" round="full" background={{ "opacity": "weak", "color": userColor }}>
+      <Text color={userColor} size="large" weight="bold" textAlign="center" margin={{ "top": "small", "bottom": "small", "left": "xsmall", "right": "xsmall" }}>
+        {user.name.split(" ").filter(word => word.length > 1).slice(0, 3).map(word => word[0].toUpperCase()).join("")}
+      </Text>
+    </Box>
+  )
+}
+
 const StateLabel = ({ state }) => (
-  <Box align="center" justify="center" border={{ "color": STATES_COLORS[state], "style": "solid", "size": "small" }} round="small" gap="xxsmall" pad="xsmall">
+  <Box align="center" justify="center" border={{ "color": STATES_COLORS[state], "style": "solid", "size": "small" }} round="medium" gap="xxsmall" pad="xsmall">
     <Text color={STATES_COLORS[state]} size="xsmall">
       {state}
     </Text>
   </Box>
 );
+
+const Task = ({ task }) => {
+  return (
+    <Card draggable fill="horizontal">
+      <CardHeader align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
+        <Heading level="4">
+          {task.name}
+        </Heading>
+      </CardHeader>
+      <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
+        <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
+          <StateLabel state={task.state} />
+          <Box direction="row" gap="small" align="center">
+            <InProgress size="small" />
+            <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
+          </Box>
+        </Box>
+        <Box align="end" justify="center" fill="horizontal">
+          {task.user_id &&
+            <Gravatar email={task.user_id.address_id.email} />
+          }
+        </Box>
+      </CardFooter>
+    </Card>
+  );
+}
+
+const Column = ({ id, name, tasks }) => {
+  return (
+    <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }}>
+      <Box align="center" justify="start" direction="column" pad="medium" background={{"color": graphColors[name] }} fill="horizontal">
+        <Heading>
+          {name}
+        </Heading>
+      </Box>
+      <Box align="center" justify="center" direction="column" gap="medium" pad="small" fill="horizontal">
+        {tasks.map(task => <Task task={task} />)}
+      </Box>
+    </Box>
+  );
+}
 
 
 const Board = ({ props }) => {
@@ -74,7 +138,7 @@ const Board = ({ props }) => {
     return (
       <Box direction="column" align="start" fill="horizontal">
         <Heading color={graphColors[stage]}>{stage} planned Hours</Heading>
-        <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
+        <Box fill="horizontal" direction="row" gap="medium">
           {_.pairs(users).map(item => {
             if (item[0] === "undefined") {
               return null;
@@ -96,40 +160,7 @@ const Board = ({ props }) => {
     )
   }
 
-  const columns = _.pairs(groupedTasks).map(item => (
-    <Box key={item[0]} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[item[0]] }}>
-      <Box align="center" justify="start" direction="column" pad="medium" background={{ "dark": false, "color": graphColors[item[0]] }} fill="horizontal">
-        <Heading>
-          {item[0]}
-        </Heading>
-      </Box>
-      <Box align="center" justify="center" direction="column" gap="medium" pad="small" fill="horizontal">
-        {item[1].map(task => (
-          <Card draggable fill="horizontal">
-            <CardHeader align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
-              <Heading level="4">
-                {task.name}
-              </Heading>
-            </CardHeader>
-            <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
-              <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
-              <StateLabel state={task.state} />
-                <Box direction="row" gap="small" align="center">
-                  <InProgress size="small" />
-                  <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
-                </Box>
-              </Box>
-              <Box align="end" justify="center" fill="horizontal">
-                {task.user_id &&
-                  <Gravatar email={task.user_id.address_id.email} />
-                }
-              </Box>
-            </CardFooter>
-          </Card>
-        ))}
-      </Box>
-    </Box>
-  ));
+  const columns = _.pairs(groupedTasks).map(item => <Column name={item[0]} tasks={item[1]} />);
   console.log(columns);
 
   return (
