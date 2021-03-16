@@ -18,7 +18,7 @@ const Auth = {
         console.log("Login successful", result.data.token);
         let token = result.data.token;
         console.log('Storing token cookie', token);
-        cookies.set('token', token, { maxAge: 3600 * 24 });
+        cookies.set('token', token, { maxAge: 3600});
       }
       Auth.isAuthenticated = true;
       Auth.token = token;
