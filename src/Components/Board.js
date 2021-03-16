@@ -4,11 +4,19 @@ import axios from "axios";
 import _ from "underscore";
 import MD5 from "crypto-js/md5";
 import { useAuth } from "./Auth";
-import { InProgress, User } from "grommet-icons";
+import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
-import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
+import { Box, Heading, Card, CardHeader, CardBody, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
 import { LinkPrevious, Update } from "grommet-icons";
+
+const STATES_COLORS = {
+  draft: "status-unknown",
+  open: "status-ok",
+  pending: "status-warning",
+  cancel: "status-critical",
+  done: "status-disabled"
+}
 
 
 const Gravatar = ({ email }) => {
@@ -16,6 +24,13 @@ const Gravatar = ({ email }) => {
   />)
 }
 
+const StateLabel = ({ state }) => (
+  <Box align="center" justify="center" border={{ "color": STATES_COLORS[state], "style": "solid", "size": "small" }} round="small" gap="xxsmall" pad="xsmall">
+    <Text color={STATES_COLORS[state]} size="xsmall">
+      {state}
+    </Text>
+  </Box>
+);
 
 
 const Board = ({ props }) => {
@@ -28,7 +43,7 @@ const Board = ({ props }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name`, {
+        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name,task_ids.partner_id.name,task_ids.state`, {
           headers: {
             Authorization: `token ${auth.token}`
           }
@@ -59,24 +74,24 @@ const Board = ({ props }) => {
     return (
       <Box direction="column" align="start" fill="horizontal">
         <Heading color={graphColors[stage]}>{stage} planned Hours</Heading>
-      <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
-        {_.pairs(users).map(item => {
-          if (item[0] === "undefined") {
-            return null;
+        <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
+          {_.pairs(users).map(item => {
+            if (item[0] === "undefined") {
+              return null;
+            }
+            const total_planned_hours = Math.round(item[1].reduce((a, b) => a + b.planned_hours, 0) * 100) / 100
+            const total_effective_hours = Math.round(item[1].reduce((a, b) => a + b.effective_hours, 0) * 100) / 100
+            return (
+              <Box align="center">
+                <Gravatar email={item[1][0].user_id.address_id.email} />
+                {item[1][0].user_id.name}
+                <Text title="Planned hours">P: {total_planned_hours} h</Text>
+                <Text title="Effective hours">E: {total_effective_hours} h</Text>
+              </Box>
+            )
           }
-          const total_planned_hours = item[1].reduce((a, b) => a + b.planned_hours, 0)
-          const total_effective_hours = item[1].reduce((a, b) => a + b.effective_hours, 0)
-          return (
-            <Box align="center">
-              <Gravatar email={item[1][0].user_id.address_id.email} />
-              {item[1][0].user_id.name}
-              <Text>{total_planned_hours} h</Text>
-              <Text>{total_effective_hours} h</Text>
-            </Box>
-          )
-        }
-        )}
-      </Box>
+          )}
+        </Box>
       </Box>
     )
   }
@@ -96,10 +111,13 @@ const Board = ({ props }) => {
                 {task.name}
               </Heading>
             </CardHeader>
-            <CardFooter align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
-              <Box align="center" justify="center" fill="horizontal" direction="row" gap="small">
-                <InProgress size="small" />
-                <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
+            <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
+              <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
+              <StateLabel state={task.state} />
+                <Box direction="row" gap="small" align="center">
+                  <InProgress size="small" />
+                  <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
+                </Box>
               </Box>
               <Box align="end" justify="center" fill="horizontal">
                 {task.user_id &&
@@ -125,8 +143,10 @@ const Board = ({ props }) => {
         </Box>
       </Box>
       {loading && <Spinner size="large" />}
-      <UsersResume stage="Current IT" />
-      <UsersResume stage="Doing" />
+      <Box direction="row" fill="horizontal">
+        <UsersResume stage="Current IT" />
+        <UsersResume stage="Doing" />
+      </Box>
       <Box fill="vertical" overflow="auto" align="top" flex="grow" direction="row" pad="large" gap="medium">
         {columns}
       </Box>
