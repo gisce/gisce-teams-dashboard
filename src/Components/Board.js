@@ -9,6 +9,7 @@ import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
 import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
 import { LinkPrevious, Update } from "grommet-icons";
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const STATES_COLORS = {
   draft: "status-unknown",
@@ -55,43 +56,55 @@ const StateLabel = ({ state }) => (
   </Box>
 );
 
-const Task = ({ task }) => {
+const Task = ({ task, index }) => {
   return (
-    <Card draggable fill="horizontal">
-      <CardHeader align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
-        <Heading level="4">
-          {task.name}
-        </Heading>
-      </CardHeader>
-      <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
-        <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
-          <StateLabel state={task.state} />
-          <Box direction="row" gap="small" align="center">
-            <InProgress size="small" />
-            <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
-          </Box>
-        </Box>
-        <Box align="end" justify="center" fill="horizontal">
-          {task.user_id &&
-            <Gravatar email={task.user_id.address_id.email} />
-          }
-        </Box>
-      </CardFooter>
-    </Card>
+    <Draggable draggableId={`task-${task.id}`} index={index}>
+      {(provided) =>
+        <Card fill="horizontal" ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}>
+          <CardHeader align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
+            <Heading level="4">
+              {task.name}
+            </Heading>
+          </CardHeader>
+          <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
+            <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
+              <StateLabel state={task.state} />
+              <Box direction="row" gap="small" align="center">
+                <InProgress size="small" />
+                <Text size="small">{task.effective_hours || '0'}{task.planned_hours && `/${task.planned_hours}`} h</Text>
+              </Box>
+            </Box>
+            <Box align="end" justify="center" fill="horizontal">
+              {task.user_id &&
+                <Gravatar email={task.user_id.address_id.email} />
+              }
+            </Box>
+          </CardFooter>
+        </Card>
+      }
+    </Draggable>
   );
 }
 
 const Column = ({ id, name, tasks }) => {
+  const columnId = `column-${id}`;
   return (
     <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }}>
-      <Box align="center" justify="start" direction="column" pad="medium" background={{"color": graphColors[name] }} fill="horizontal">
+      <Box align="center" justify="start" direction="column" pad="medium" background={{ "color": graphColors[name] }} fill="horizontal">
         <Heading>
           {name}
         </Heading>
       </Box>
-      <Box align="center" justify="center" direction="column" gap="medium" pad="small" fill="horizontal">
-        {tasks.map(task => <Task task={task} />)}
-      </Box>
+      <Droppable droppableId={columnId}>
+        {(provided) =>
+          <Box align="center" justify="center" direction="column" gap="medium" pad="small" fill="horizontal" ref={provided.innerRef} {...provided.droppableProps}>
+            {tasks.map((task, index) => <Task key={task.id} task={task} index={index} />)}
+            {provided.placeholder}
+          </Box>
+        }
+      </Droppable>
     </Box>
   );
 }
@@ -146,7 +159,7 @@ const Board = ({ props }) => {
             const total_planned_hours = Math.round(item[1].reduce((a, b) => a + b.planned_hours, 0) * 100) / 100
             const total_effective_hours = Math.round(item[1].reduce((a, b) => a + b.effective_hours, 0) * 100) / 100
             return (
-              <Box align="center">
+              <Box align="center" key={item[0]}>
                 <Gravatar email={item[1][0].user_id.address_id.email} />
                 {item[1][0].user_id.name}
                 <Text title="Planned hours">P: {total_planned_hours} h</Text>
@@ -160,7 +173,7 @@ const Board = ({ props }) => {
     )
   }
 
-  const columns = _.pairs(groupedTasks).map(item => <Column name={item[0]} tasks={item[1]} />);
+  const columns = _.pairs(groupedTasks).map((item, index) => <Column key={item[0]} id={index} name={item[0]} tasks={item[1]} />);
   console.log(columns);
 
   return (
@@ -178,9 +191,11 @@ const Board = ({ props }) => {
         <UsersResume stage="Current IT" />
         <UsersResume stage="Doing" />
       </Box>
-      <Box fill="vertical" overflow="auto" align="top" flex="grow" direction="row" pad="large" gap="medium">
-        {columns}
-      </Box>
+      <DragDropContext>
+        <Box fill="vertical" overflow="auto" flex="grow" direction="row" pad="large" gap="medium">
+          {columns}
+        </Box>
+      </DragDropContext>
     </Box>
   )
 }
