@@ -7,12 +7,14 @@ import Board from "./Components/Board";
 import { ProvideAuth } from "./Components/Auth";
 import PrivateRoute from "./Components/Route";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import AppHeader from "./Components/Header";
 
 function App() {
   return (
     <ProvideAuth>
       <Router>
         <Grommet>
+        <AppHeader/>
           <Switch>
             <Route path="/login">
               <LoginForm />

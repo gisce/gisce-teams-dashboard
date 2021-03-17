@@ -161,7 +161,7 @@ const Board = ({ props }) => {
             const total_effective_hours = Math.round(item[1].reduce((a, b) => a + b.effective_hours, 0) * 100) / 100
             return (
               <Box align="center" key={item[0]}>
-                <Gravatar email={item[1][0].user_id.address_id.email} />
+                <LeterAvatar user={item[1][0].user_id} />
                 {item[1][0].user_id.name}
                 <Text title="Planned hours">P: {total_planned_hours} h</Text>
                 <Text title="Effective hours">E: {total_effective_hours} h</Text>
