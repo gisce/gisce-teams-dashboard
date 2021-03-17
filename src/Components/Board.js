@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import _ from "underscore";
+import _ from "lodash";
 import MD5 from "crypto-js/md5";
 import ApiClient from "../Services/ApiClient";
-import { InProgress } from "grommet-icons";
+import { InProgress, Up } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
 import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
@@ -88,19 +88,43 @@ const Task = ({ task, index }) => {
   );
 }
 
-const Column = ({ id, name, tasks }) => {
+const Column = ({ id, name }) => {
   const columnId = `column-${id}`;
+  const params = useParams();
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  console.log("Rendering column", id, name);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${id}),('team_id','=',${params.id})]&schema=name,user_id.name,state`);
+        setTasks(_.mapKeys(result.data.items, "id"));
+      }
+      catch (exc) {
+        console.log(exc);
+      }
+      finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [])
   return (
-    <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }}>
+    <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }} style={{minWidth: 300}}>
       <Box align="center" justify="start" direction="column" pad="medium" background={{ "color": graphColors[name] }} fill="horizontal">
-        <Heading>
+        <Heading level="2">
           {name}
         </Heading>
+        {loading && <Box animation="rotateRight">
+          <Update />
+        </Box>
+        }
       </Box>
       <Droppable droppableId={columnId}>
         {(provided) =>
           <Box align="center" justify="center" direction="column" gap="medium" pad="small" fill="horizontal" ref={provided.innerRef} {...provided.droppableProps}>
-            {tasks.map((task, index) => <Task key={task.id} task={task} index={index} />)}
+            {Object.values(tasks).map((task, index) => <Task key={task.id} task={task} index={index} />)}
             {provided.placeholder}
           </Box>
         }
@@ -112,15 +136,19 @@ const Column = ({ id, name, tasks }) => {
 
 const Board = ({ props }) => {
   const [loading, setLoading] = useState(true);
-  const [project, setProject] = useState({});
+  const [columns, setColumns] = useState({});
   const history = useHistory();
   const { id } = useParams()
+
+  const onDragEnd = (result) => {
+    const {draggableId, source, destination} = result;
+  }
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await ApiClient.get(`/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name,task_ids.partner_id.name,task_ids.state`);
-        setProject(result.data)
+        const result = await ApiClient.get("/ProjectTaskStage");
+        setColumns(Object.assign(_.mapKeys(result.data.items, "id")));
       }
       catch (exc) {
         console.log(exc);
@@ -132,44 +160,10 @@ const Board = ({ props }) => {
     fetchData();
   }, [loading])
 
-  const groupedTasks = _.groupBy(project.task_ids, t => {
-    const stage = t.stage_id ?? { name: "undefined" };
-    return stage.name;
+  const columnsRender = Object.values(columns).map((col, index) => {
+    console.log('Render columns');
+    return (<Column key={col.id} id={col.id} name={col.name} />);
   });
-
-
-  const UsersResume = ({ stage }) => {
-    const users = _.groupBy(groupedTasks[stage], t => {
-      const user = t.user_id ?? { name: "undefined", email: null };
-      return user.name
-    });
-    return (
-      <Box direction="column" align="center" fill="horizontal" pad="medium">
-        <Heading color={graphColors[stage]}>{stage} planned Hours</Heading>
-        <Box fill="horizontal" direction="row" gap="medium">
-          {_.pairs(users).map(item => {
-            if (item[0] === "undefined") {
-              return null;
-            }
-            const total_planned_hours = Math.round(item[1].reduce((a, b) => a + b.planned_hours, 0) * 100) / 100
-            const total_effective_hours = Math.round(item[1].reduce((a, b) => a + b.effective_hours, 0) * 100) / 100
-            return (
-              <Box key={item[0]} fill="horizontal" align="center">
-                <LeterAvatar user={item[1][0].user_id} />
-                {item[1][0].user_id.name}
-                <Text title="Planned hours">P: {total_planned_hours} h</Text>
-                <Text title="Effective hours">E: {total_effective_hours} h</Text>
-              </Box>
-            )
-          }
-          )}
-        </Box>
-      </Box>
-    )
-  }
-
-  const columns = _.pairs(groupedTasks).map((item, index) => <Column key={item[0]} id={index} name={item[0]} tasks={item[1]} />);
-  console.log(columns);
 
   return (
     <Box fill="vertical" overflow="auto" align="center" flex="grow" pad="medium">
@@ -183,13 +177,9 @@ const Board = ({ props }) => {
       </Box>
       {loading && <Spinner size="large" />}
       {!loading && <>
-        <Box direction="row" fill="horizontal" align="center" pad="small">
-          <UsersResume stage="Current IT" />
-          <UsersResume stage="Doing" />
-        </Box>
-        <DragDropContext>
+        <DragDropContext onDragEnd={onDragEnd}>
           <Box fill="vertical" overflow="auto" flex="grow" direction="row" pad="large" gap="medium">
-            {columns}
+            {columnsRender}
           </Box>
         </DragDropContext>
       </>}

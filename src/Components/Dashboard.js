@@ -16,7 +16,8 @@ export const graphColors = {
   "Current IT": "graph-1",
   "Doing": "graph-2",
   "Done": "graph-3",
-  "undefined": "accent-4"
+  "undefined": "accent-4",
+  "Archive": "graph-4"
 }
 
 const Dashboard = ({ props }) => {
