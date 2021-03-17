@@ -39,10 +39,11 @@ const LeterAvatar = ({ user }) => {
     return colour;
   }
   const userColor = color(user.name);
+  const text = user.name.split(" ").filter(word => word.length > 1).slice(0, 3).map(word => word[0].toUpperCase()).join("");
   return (
-    <Box align="center" justify="center" border={{ "color": userColor, "style": "solid", "size": "medium", "side": "all" }} gap="xxsmall" pad="xsmall" round="full" background={{ "opacity": "weak", "color": userColor }}>
-      <Text color={userColor} size="large" weight="bold" textAlign="center" margin={{ "top": "small", "bottom": "small", "left": "xsmall", "right": "xsmall" }}>
-        {user.name.split(" ").filter(word => word.length > 1).slice(0, 3).map(word => word[0].toUpperCase()).join("")}
+    <Box title={user.name} align="center" justify="center" border={{ color: userColor }} background={{ "color": userColor, "opacity": "weak" }} round="full" pad="small" width="xxsmall" height="xxsmall">
+      <Text textAlign="center" color={userColor}>
+        {text}
       </Text>
     </Box>
   )
@@ -78,7 +79,7 @@ const Task = ({ task, index }) => {
             </Box>
             <Box align="end" justify="center" fill="horizontal">
               {task.user_id &&
-                <Gravatar email={task.user_id.address_id.email} />
+                <LeterAvatar user={task.user_id} />
               }
             </Box>
           </CardFooter>
