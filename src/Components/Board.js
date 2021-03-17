@@ -150,7 +150,7 @@ const Board = ({ props }) => {
       return user.name
     });
     return (
-      <Box direction="column" align="start" fill="horizontal">
+      <Box direction="column" align="center" fill="horizontal" pad="medium">
         <Heading color={graphColors[stage]}>{stage} planned Hours</Heading>
         <Box fill="horizontal" direction="row" gap="medium">
           {_.pairs(users).map(item => {
@@ -160,7 +160,7 @@ const Board = ({ props }) => {
             const total_planned_hours = Math.round(item[1].reduce((a, b) => a + b.planned_hours, 0) * 100) / 100
             const total_effective_hours = Math.round(item[1].reduce((a, b) => a + b.effective_hours, 0) * 100) / 100
             return (
-              <Box align="center" key={item[0]}>
+              <Box key={item[0]} fill="horizontal" align="center">
                 <LeterAvatar user={item[1][0].user_id} />
                 {item[1][0].user_id.name}
                 <Text title="Planned hours">P: {total_planned_hours} h</Text>
@@ -188,15 +188,17 @@ const Board = ({ props }) => {
         </Box>
       </Box>
       {loading && <Spinner size="large" />}
-      <Box direction="row" fill="horizontal">
-        <UsersResume stage="Current IT" />
-        <UsersResume stage="Doing" />
-      </Box>
-      <DragDropContext>
-        <Box fill="vertical" overflow="auto" flex="grow" direction="row" pad="large" gap="medium">
-          {columns}
+      {!loading && <>
+        <Box direction="row" fill="horizontal" align="center" pad="small">
+          <UsersResume stage="Current IT" />
+          <UsersResume stage="Doing" />
         </Box>
-      </DragDropContext>
+        <DragDropContext>
+          <Box fill="vertical" overflow="auto" flex="grow" direction="row" pad="large" gap="medium">
+            {columns}
+          </Box>
+        </DragDropContext>
+      </>}
     </Box>
   )
 }
