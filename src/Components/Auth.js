@@ -1,20 +1,19 @@
 import React, { useContext, createContext, useState } from "react";
 import Cookies from 'universal-cookie';
-import axios from "axios";
+import ApiClient from "../Services/ApiClient";
 
 const cookies = new Cookies();
 
 
-const Auth = {
+export const Auth = {
   isAuthenticated: cookies.get('token') ? true : false,
   token: cookies.get('token'),
   async signin(username, password) {
-    let token = Auth.token;
     try {
       if (!Auth.token) {
-        const result = await axios.get('http://10.246.0.198:8067/token', {
+        const result = await ApiClient.get('/token', {
           auth: { username, password }
-        })
+        });
         console.log("Login successful", result.data.token);
         let token = result.data.token;
         console.log('Storing token cookie', token);

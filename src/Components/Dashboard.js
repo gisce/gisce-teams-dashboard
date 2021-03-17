@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import ApiClient from "../Services/ApiClient";
 import _ from "underscore";
 import { useAuth } from "./Auth";
 import { Grommet, Group, Update, Columns } from "grommet-icons";
@@ -28,11 +28,7 @@ const Dashboard = ({ props }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await axios.get("http://10.246.0.198:8067/ProjectTeam?schema=name,task_ids.stage_id.name,member_ids", {
-          headers: {
-            Authorization: `token ${auth.token}`
-          }
-        });
+        const result = await ApiClient.get("/ProjectTeam?schema=name,task_ids.stage_id.name,member_ids");
         setTeams(result.data.items);
       }
       catch (exc) {

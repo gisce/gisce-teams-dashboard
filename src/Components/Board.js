@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
-import axios from "axios";
 import _ from "underscore";
 import MD5 from "crypto-js/md5";
-import { useAuth } from "./Auth";
+import ApiClient from "../Services/ApiClient";
 import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
@@ -114,18 +113,13 @@ const Column = ({ id, name, tasks }) => {
 const Board = ({ props }) => {
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState({});
-  const auth = useAuth();
   const history = useHistory();
   const { id } = useParams()
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await axios.get(`http://10.246.0.198:8067/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name,task_ids.partner_id.name,task_ids.state`, {
-          headers: {
-            Authorization: `token ${auth.token}`
-          }
-        });
+        const result = await ApiClient.get(`/ProjectTeam/${id}?schema=name,task_ids.stage_id.name,task_ids.name,task_ids.user_id.address_id.email,task_ids.effective_hours,task_ids.planned_hours,task_ids.user_id.name,task_ids.partner_id.name,task_ids.state`);
         setProject(result.data)
       }
       catch (exc) {
