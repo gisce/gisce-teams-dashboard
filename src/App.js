@@ -1,6 +1,7 @@
 import './App.css';
 import { Grommet } from "grommet";
 import LoginForm from "./Components/Login";
+import Logout from "./Components/Logout";
 import Dashboard from "./Components/Dashboard";
 import Board from "./Components/Board";
 import { ProvideAuth } from "./Components/Auth";
@@ -24,6 +25,9 @@ function App() {
             </PrivateRoute>
             <PrivateRoute path="/team/:id">
               <Board/>
+            </PrivateRoute>
+            <PrivateRoute path="/logout">
+              <Logout/>
             </PrivateRoute>
           </Switch>
         </Grommet>

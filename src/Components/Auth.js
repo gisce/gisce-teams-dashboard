@@ -18,17 +18,19 @@ const Auth = {
         console.log("Login successful", result.data.token);
         let token = result.data.token;
         console.log('Storing token cookie', token);
-        cookies.set('token', token, { maxAge: 3600});
+        cookies.set('token', token, { maxAge: 3600 });
+        Auth.isAuthenticated = true;
+        Auth.token = token;
       }
-      Auth.isAuthenticated = true;
-      Auth.token = token;
     } catch (exc) {
       Auth.signout();
     }
   },
   signout() {
+    console.log('Signing out...');
     Auth.isAuthenticated = false;
     Auth.token = null;
+    cookies.remove('token');
   }
 };
 
@@ -60,7 +62,8 @@ function useProvideAuth() {
   };
 
   const signout = () => {
-    return Auth.signout()
+    Auth.signout();
+    setToken(Auth.token);
   };
 
   return {
