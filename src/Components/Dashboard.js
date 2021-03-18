@@ -23,7 +23,6 @@ export const graphColors = {
 const Dashboard = ({ props }) => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
-  const auth = useAuth();
   const history = useHistory();
 
   useEffect(() => {
@@ -41,7 +40,7 @@ const Dashboard = ({ props }) => {
     }
     fetchData();
 
-  }, [loading, auth.token])
+  }, [])
 
   const teamCards = teams.map(team => {
     const groupedTasks = _.groupBy(team.task_ids, t => {

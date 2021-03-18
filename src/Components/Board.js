@@ -88,30 +88,10 @@ const Task = ({ task, index }) => {
   );
 }
 
-const Column = ({ id, name }) => {
+const Column = ({ id, name, tasks = [], loading = false }) => {
   const columnId = `column-${id}`;
-  const params = useParams();
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  console.log("Rendering column", id, name);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${id}),('team_id','=',${params.id})]&schema=name,user_id.name,state`);
-        setTasks(_.mapKeys(result.data.items, "id"));
-      }
-      catch (exc) {
-        console.log(exc);
-      }
-      finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [])
   return (
-    <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }} style={{minWidth: 300}}>
+    <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }} style={{ minWidth: 300 }}>
       <Box align="center" justify="start" direction="column" pad="medium" background={{ "color": graphColors[name] }} fill="horizontal">
         <Heading level="2">
           {name}
@@ -137,18 +117,47 @@ const Column = ({ id, name }) => {
 const Board = ({ props }) => {
   const [loading, setLoading] = useState(true);
   const [columns, setColumns] = useState({});
+  const [tasks, setTasks] = useState({});
+  const [loadingTasks, setLoadingTasks] = useState({});
   const history = useHistory();
   const { id } = useParams()
 
-  const onDragEnd = (result) => {
-    const {draggableId, source, destination} = result;
+  const onDragEnd = async (result) => {
+    const { draggableId, source, destination } = result;
+    console.log(draggableId);
+    console.log(source);
+    console.log(destination);
+    const taskId = parseInt(draggableId.split('-')[1]);
+    const stageSourceId = parseInt(source.droppableId.split('-')[1]);
+    const stageDestId = parseInt(destination.droppableId.split('-')[1]);
+    if (stageDestId === stageSourceId) {
+      return;
+    }
+    const newTasks = {...tasks};
+    newTasks[stageDestId][taskId] = {...newTasks[stageSourceId][taskId]}
+    delete newTasks[stageSourceId][taskId]
+    setTasks(newTasks);
+    await ApiClient.patch(`/ProjectTask/${taskId}`, {stage_id: stageDestId});
+  }
+
+  async function fetchTasks(stageId) {
+    const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state`);
+    return _.mapKeys(result.data.items, "id");
   }
 
   useEffect(() => {
     async function fetchData() {
       try {
         const result = await ApiClient.get("/ProjectTaskStage");
-        setColumns(Object.assign(_.mapKeys(result.data.items, "id")));
+        console.log(result);
+        setColumns(_.mapKeys(result.data.items, "id"));
+        for (let stage of result.data.items) {
+          const t = {};
+          t[stage.id] = true;
+          setLoadingTasks((v) => {
+            return {...v, ...t}
+          });
+        }
       }
       catch (exc) {
         console.log(exc);
@@ -158,11 +167,31 @@ const Board = ({ props }) => {
       }
     }
     fetchData();
-  }, [loading])
+  }, [id])
+
+  useEffect(() => {
+    async function fetch() {
+      Object.keys(columns).map(async col =>{
+        const stageTasks = await fetchTasks(col);
+        const t = {}
+        t[col] = stageTasks;
+        setTasks(tasks => {
+          return {...tasks, ...t}
+        });
+        const t2 = {};
+          t2[col] = false;
+          setLoadingTasks((v) => {
+            return {...v, ...t2}
+          });
+      });
+    }
+    fetch();
+  }, [columns]);
+
+  console.log('render');
 
   const columnsRender = Object.values(columns).map((col, index) => {
-    console.log('Render columns');
-    return (<Column key={col.id} id={col.id} name={col.name} />);
+    return (<Column key={col.id} id={col.id} name={col.name} tasks={tasks.hasOwnProperty(col.id) ? Object.values(tasks[col.id]) : []} loading={loadingTasks[col.id]} />);
   });
 
   return (
