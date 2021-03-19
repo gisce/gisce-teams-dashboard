@@ -99,7 +99,10 @@ const Column = ({ id, name, tasks = [], loading = false }) => {
         <Heading level="2">
           {name}
         </Heading>
+        <Box direction="row" fill="horizontal" gap="medium" align="center" justify="center">
         <Text>{tasks.length} tasks</Text>
+        <Text>{Math.round(tasks.reduce((p, c) => p + c.effective_hours, 0) * 100) / 100} / {Math.round(tasks.reduce((p, c) => p + c.planned_hours, 0) * 100) / 100} h</Text>
+        </Box>
         {loading && <Box animation="rotateRight">
           <Update />
         </Box>
@@ -171,7 +174,7 @@ const Board = ({ props }) => {
 
   useEffect(() => {
     async function fetchTasks(stageId) {
-      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline`);
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline&order=date_deadline asc`);
       return _.mapKeys(result.data.items, "id");
     }
 
