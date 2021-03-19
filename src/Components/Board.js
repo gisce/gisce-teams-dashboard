@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import _ from "lodash";
-import MD5 from "crypto-js/md5";
 import ApiClient from "../Services/ApiClient";
-import { InProgress, Up } from "grommet-icons";
+import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
-import { Box, Heading, Card, CardHeader, CardFooter, Text, Avatar, Button, Spinner } from "grommet";
+import { Box, Heading, Card, CardHeader, CardFooter, Text, Button, Spinner } from "grommet";
 import { LinkPrevious, Update } from "grommet-icons";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
@@ -18,11 +17,6 @@ const STATES_COLORS = {
   done: "status-disabled"
 }
 
-
-const Gravatar = ({ email }) => {
-  return (<Avatar title={email} align="center" flex={false} justify="center" overflow="hidden" round="full" src={`https://www.gravatar.com/avatar/${MD5(email).toString()}?d=identicon`}
-  />)
-}
 
 const LeterAvatar = ({ user }) => {
   const color = (text) => {
@@ -140,11 +134,6 @@ const Board = ({ props }) => {
     await ApiClient.patch(`/ProjectTask/${taskId}`, {stage_id: stageDestId});
   }
 
-  async function fetchTasks(stageId) {
-    const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state`);
-    return _.mapKeys(result.data.items, "id");
-  }
-
   useEffect(() => {
     async function fetchData() {
       try {
@@ -170,6 +159,11 @@ const Board = ({ props }) => {
   }, [id])
 
   useEffect(() => {
+    async function fetchTasks(stageId) {
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state`);
+      return _.mapKeys(result.data.items, "id");
+    }
+
     async function fetch() {
       Object.keys(columns).map(async col =>{
         const stageTasks = await fetchTasks(col);
@@ -186,7 +180,7 @@ const Board = ({ props }) => {
       });
     }
     fetch();
-  }, [columns]);
+  }, [columns, id]);
 
   console.log('render');
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ApiClient from "../Services/ApiClient";
 import _ from "underscore";
-import { useAuth } from "./Auth";
 import { Grommet, Group, Update, Columns } from "grommet-icons";
 import { useHistory } from "react-router-dom";
 import {
