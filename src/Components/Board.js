@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import _ from "lodash";
+import moment from "moment";
 import ApiClient from "../Services/ApiClient";
 import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
 import { Box, Heading, Card, CardHeader, CardFooter, Text, Button, Spinner } from "grommet";
-import { LinkPrevious, Update } from "grommet-icons";
+import { LinkPrevious, Update, Calendar } from "grommet-icons";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const STATES_COLORS = {
@@ -57,7 +58,15 @@ const Task = ({ task, index }) => {
         <Card fill="horizontal" ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}>
-          <CardHeader align="center" direction="row" flex={false} justify="between" gap="medium" pad="small">
+          <CardHeader align="center" direction="column" flex={false} justify="between" gap="xsmall" pad="small" fill="horizontal">
+            {task.date_deadline &&
+              <Box align="center" justify="center" direction="row" gap="xsmall">
+                <Calendar size="small" />
+                <Text size="xsmall" textAlign="center">
+                  {task.date_deadline.split(' ')[0]} ({moment(task.date_deadline, "YYYY-MM-DD HH:mm:SS").fromNow()})
+                </Text>
+              </Box>
+            }
             <Heading level="4">
               {task.name}
             </Heading>
@@ -128,11 +137,11 @@ const Board = ({ props }) => {
     if (stageDestId === stageSourceId) {
       return;
     }
-    const newTasks = {...tasks};
-    newTasks[stageDestId][taskId] = {...newTasks[stageSourceId][taskId]}
+    const newTasks = { ...tasks };
+    newTasks[stageDestId][taskId] = { ...newTasks[stageSourceId][taskId] }
     delete newTasks[stageSourceId][taskId]
     setTasks(newTasks);
-    await ApiClient.patch(`/ProjectTask/${taskId}`, {stage_id: stageDestId});
+    await ApiClient.patch(`/ProjectTask/${taskId}`, { stage_id: stageDestId });
   }
 
   useEffect(() => {
@@ -145,7 +154,7 @@ const Board = ({ props }) => {
           const t = {};
           t[stage.id] = true;
           setLoadingTasks((v) => {
-            return {...v, ...t}
+            return { ...v, ...t }
           });
         }
       }
@@ -156,8 +165,9 @@ const Board = ({ props }) => {
         setLoading(false);
       }
     }
+    setColumns([]);
     fetchData();
-  }, [id])
+  }, [id, loading])
 
   useEffect(() => {
     async function fetchTasks(stageId) {
@@ -166,18 +176,18 @@ const Board = ({ props }) => {
     }
 
     async function fetch() {
-      Object.keys(columns).map(async col =>{
+      Object.keys(columns).map(async col => {
         const stageTasks = await fetchTasks(col);
         const t = {}
         t[col] = stageTasks;
         setTasks(tasks => {
-          return {...tasks, ...t}
+          return { ...tasks, ...t }
         });
         const t2 = {};
-          t2[col] = false;
-          setLoadingTasks((v) => {
-            return {...v, ...t2}
-          });
+        t2[col] = false;
+        setLoadingTasks((v) => {
+          return { ...v, ...t2 }
+        });
       });
     }
     fetch();
