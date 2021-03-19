@@ -83,10 +83,8 @@ const TeamCard = ({ id, name, members }) => {
 
 
 const Dashboard = ({ props }) => {
-  const [teams, setTeams] = useState([]);
-  const [groupedTasks, setGroupedTasks] = useState({});
+  const [teams, setTeams] = useState([]); 
   const [loading, setLoading] = useState(true);
-  const history = useHistory();
 
   useEffect(() => {
     async function fetchData() {
@@ -103,13 +101,16 @@ const Dashboard = ({ props }) => {
     }
     fetchData();
 
-  }, [])
+  }, [loading])
 
   const teamCards = teams.map(team => <TeamCard id={team.id} name={team.name} members={team.member_ids} />);
   return (
     <Box fill="vertical" overflow="auto" align="center" flex="grow" pad="medium">
       <Box align="end" justify="center" fill="horizontal" pad="medium">
-        <Button label="Update" icon={<Update />} primary disabled={loading} onClick={() => setLoading(true)} />
+        <Button label="Update" icon={<Update />} primary disabled={loading} onClick={() => {
+          setTeams([]);
+          setLoading(true);
+        }} />
       </Box>
       {loading && <Spinner size="large" />}
       <Grid fill="horizontal" columns="small" gap="large" pad="medium">
