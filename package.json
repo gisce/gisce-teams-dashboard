@@ -7,7 +7,6 @@
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.7.3",
     "axios": "^0.21.1",
-    "crypto-js": "^4.0.0",
     "grommet": "https://github.com/grommet/grommet/tarball/stable",
     "grommet-icons": "^4.5.0",
     "lodash": "^4.17.21",
