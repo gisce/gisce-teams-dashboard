@@ -86,10 +86,11 @@ const Column = ({ id, name, tasks = [], loading = false }) => {
   const columnId = `column-${id}`;
   return (
     <Box key={name} align="center" justify="start" fill="vertical" direction="column" border={{ "color": graphColors[name] }} style={{ minWidth: 300 }}>
-      <Box align="center" justify="start" direction="column" pad="medium" background={{ "color": graphColors[name] }} fill="horizontal">
+      <Box align="center" justify="start" direction="column" gap="small" pad="medium" background={{ "color": graphColors[name] }} fill="horizontal">
         <Heading level="2">
           {name}
         </Heading>
+        <Text>{tasks.length} tasks</Text>
         {loading && <Box animation="rotateRight">
           <Update />
         </Box>
@@ -160,7 +161,7 @@ const Board = ({ props }) => {
 
   useEffect(() => {
     async function fetchTasks(stageId) {
-      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state`);
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline`);
       return _.mapKeys(result.data.items, "id");
     }
 
