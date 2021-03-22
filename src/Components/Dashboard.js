@@ -103,7 +103,7 @@ const Dashboard = ({ props }) => {
 
   }, [loading])
 
-  const teamCards = teams.map(team => <TeamCard id={team.id} name={team.name} members={team.member_ids} />);
+  const teamCards = teams.map(team => <TeamCard key={team.id} id={team.id} name={team.name} members={team.member_ids} />);
   return (
     <Box fill="vertical" overflow="auto" align="center" flex="grow" pad="medium">
       <Box align="end" justify="center" fill="horizontal" pad="medium">
