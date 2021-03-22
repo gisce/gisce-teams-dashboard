@@ -131,9 +131,6 @@ const Board = ({ props }) => {
 
   const onDragEnd = async (result) => {
     const { draggableId, source, destination } = result;
-    console.log(draggableId);
-    console.log(source);
-    console.log(destination);
     const taskId = parseInt(draggableId.split('-')[1]);
     const stageSourceId = parseInt(source.droppableId.split('-')[1]);
     const stageDestId = parseInt(destination.droppableId.split('-')[1]);
@@ -141,8 +138,8 @@ const Board = ({ props }) => {
       return;
     }
     const newTasks = { ...tasks };
-    newTasks[stageDestId][taskId] = { ...newTasks[stageSourceId][taskId] }
-    delete newTasks[stageSourceId][taskId]
+    newTasks[stageDestId].splice(destination.index, 0, {...tasks[stageSourceId][source.index]})
+    newTasks[stageSourceId].splice(source.index, 1);
     setTasks(newTasks);
     await ApiClient.patch(`/ProjectTask/${taskId}`, { stage_id: stageDestId });
   }
@@ -151,7 +148,6 @@ const Board = ({ props }) => {
     async function fetchData() {
       try {
         const result = await ApiClient.get("/ProjectTaskStage");
-        console.log(result);
         setColumns(_.mapKeys(result.data.items, "id"));
         for (let stage of result.data.items) {
           const t = {};
@@ -175,7 +171,7 @@ const Board = ({ props }) => {
   useEffect(() => {
     async function fetchTasks(stageId) {
       const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline&order=date_deadline asc`);
-      return _.mapKeys(result.data.items, "id");
+      return result.data.items;
     }
 
     async function fetch() {
@@ -196,10 +192,8 @@ const Board = ({ props }) => {
     fetch();
   }, [columns, id]);
 
-  console.log('render');
-
   const columnsRender = Object.values(columns).map((col, index) => {
-    return (<Column key={col.id} id={col.id} name={col.name} tasks={tasks.hasOwnProperty(col.id) ? Object.values(tasks[col.id]) : []} loading={loadingTasks[col.id]} />);
+    return (<Column key={col.id} id={col.id} name={col.name} tasks={tasks.hasOwnProperty(col.id) ? tasks[col.id] : []} loading={loadingTasks[col.id]} />);
   });
 
   return (
