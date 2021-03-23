@@ -6,7 +6,7 @@ import ApiClient from "../Services/ApiClient";
 import { InProgress } from "grommet-icons";
 import { graphColors } from "./Dashboard";
 import { useParams } from "react-router-dom";
-import { Box, Heading, Card, CardHeader, CardFooter, Text, Button, Spinner } from "grommet";
+import { Box, Heading, Card, CardHeader, CardBody, CardFooter, Text, Button, Spinner } from "grommet";
 import { LinkPrevious, Update, Calendar } from "grommet-icons";
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
@@ -70,7 +70,10 @@ const Task = ({ task, index }) => {
             <Heading level="4">
               {task.name}
             </Heading>
+            <Text size="xsmall">{task.partner_id ? task.partner_id.name : ''}</Text>
           </CardHeader>
+          <CardBody>
+          </CardBody>
           <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
             <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
               <StateLabel state={task.state} />
@@ -170,7 +173,7 @@ const Board = ({ props }) => {
 
   useEffect(() => {
     async function fetchTasks(stageId) {
-      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline&order=date_deadline asc`);
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline,partner_id.name&order=date_deadline asc`);
       return result.data.items;
     }
 
