@@ -100,6 +100,7 @@ const Task = ({ task, index }) => {
             <Heading level="4">
               {task.name}
             </Heading>
+            <Button size="small" as="a" label="View in ERP" target="_blank" href={`http://10.246.0.198:8000/form/view?model=project.task&id=${task.id}`} />
             <Text size="xsmall">{task.partner_id ? task.partner_id.name : ''}</Text>
           </CardHeader>
           <CardBody>
