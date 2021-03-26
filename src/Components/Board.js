@@ -18,6 +18,36 @@ const STATES_COLORS = {
   done: "status-disabled"
 }
 
+const UsersResume = ({ stage, tasks }) => {
+  console.log(tasks);
+  const users = _.groupBy(tasks, t => {
+    const user = t.user_id ?? { name: "undefined", email: null };
+    return user.name
+  });
+  return (
+    <Box direction="column" align="start" fill="horizontal">
+      <Heading size="4" color={graphColors[stage]}>{stage} planned Hours</Heading>
+      <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
+        {_.entries(users).map(item => {
+          if (item[0] === "undefined") {
+            return null;
+          }
+          const total_planned_hours = item[1].reduce((a, b) => a + b.planned_hours, 0)
+          const total_effective_hours = item[1].reduce((a, b) => a + b.effective_hours, 0)
+          return (
+            <Box align="center">
+              <LeterAvatar user={item[1][0].user_id} />
+              <Text>P: {total_planned_hours} h</Text>
+              <Text>E: {total_effective_hours} h</Text>
+            </Box>
+          )
+        }
+        )}
+      </Box>
+    </Box>
+  )
+}
+
 
 const LeterAvatar = ({ user }) => {
   const color = (text) => {
@@ -103,8 +133,8 @@ const Column = ({ id, name, tasks = [], loading = false }) => {
           {name}
         </Heading>
         <Box direction="row" fill="horizontal" gap="medium" align="center" justify="center">
-        <Text>{tasks.length} tasks</Text>
-        <Text>{Math.round(tasks.reduce((p, c) => p + c.effective_hours, 0) * 100) / 100} / {Math.round(tasks.reduce((p, c) => p + c.planned_hours, 0) * 100) / 100} h</Text>
+          <Text>{tasks.length} tasks</Text>
+          <Text>{Math.round(tasks.reduce((p, c) => p + c.effective_hours, 0) * 100) / 100} / {Math.round(tasks.reduce((p, c) => p + c.planned_hours, 0) * 100) / 100} h</Text>
         </Box>
         {loading && <Box animation="rotateRight">
           <Update />
@@ -141,7 +171,7 @@ const Board = ({ props }) => {
       return;
     }
     const newTasks = { ...tasks };
-    newTasks[stageDestId].splice(destination.index, 0, {...tasks[stageSourceId][source.index]})
+    newTasks[stageDestId].splice(destination.index, 0, { ...tasks[stageSourceId][source.index] })
     newTasks[stageSourceId].splice(source.index, 1);
     setTasks(newTasks);
     await ApiClient.patch(`/ProjectTask/${taskId}`, { stage_id: stageDestId });
@@ -211,6 +241,13 @@ const Board = ({ props }) => {
       </Box>
       {loading && <Spinner size="large" />}
       {!loading && <>
+        {_.keys(columns).length > 0 &&
+          <Box fill="horizontal" direction="row" justify="center">
+            <UsersResume stage={columns[2].name} tasks={tasks[2]} />
+            <UsersResume stage={columns[4].name} tasks={tasks[4]} />
+            <UsersResume stage={columns[5].name} tasks={tasks[5]} />
+          </Box>
+        }
         <DragDropContext onDragEnd={onDragEnd}>
           <Box fill="vertical" overflow="auto" flex="grow" direction="row" pad="large" gap="medium">
             {columnsRender}
