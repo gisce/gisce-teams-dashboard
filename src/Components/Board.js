@@ -93,7 +93,7 @@ const Task = ({ task, index }) => {
               <Box align="center" justify="center" direction="row" gap="xsmall">
                 <Calendar size="small" />
                 <Text size="xsmall" textAlign="center">
-                  {task.date_deadline.split(' ')[0]} ({moment(task.date_deadline, "YYYY-MM-DD HH:mm:SS").fromNow()})
+                  Limit: {task.date_deadline.split(' ')[0]} ({moment(task.date_deadline, "YYYY-MM-DD HH:mm:SS").fromNow()})
                 </Text>
               </Box>
             }
@@ -104,6 +104,9 @@ const Task = ({ task, index }) => {
             <Text size="xsmall">{task.partner_id ? task.partner_id.name : ''}</Text>
           </CardHeader>
           <CardBody>
+          <Text size="xsmall" textAlign="center">
+                  Created {task.date_start.split(' ')[0]} ({moment(task.date_start, "YYYY-MM-DD HH:mm:SS").fromNow()})
+                </Text>
           </CardBody>
           <CardFooter align="center" direction="row" flex={false} justify="between" gap="small" pad="small">
             <Box align="center" justify="center" fill="horizontal" direction="column" gap="xsmall">
@@ -204,7 +207,7 @@ const Board = ({ props }) => {
 
   useEffect(() => {
     async function fetchTasks(stageId) {
-      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,state,effective_hours,planned_hours,date_deadline,partner_id.name&order=date_deadline asc`);
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,date_start,state,effective_hours,planned_hours,date_deadline,partner_id.name&order=date_deadline asc`);
       return result.data.items;
     }
 
