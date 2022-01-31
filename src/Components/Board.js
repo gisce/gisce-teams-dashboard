@@ -27,7 +27,7 @@ const UsersResume = ({ stage, tasks }) => {
   return (
     <Box direction="column" align="start" fill="horizontal">
       <Heading size="4" color={graphColors[stage]}>{stage} planned Hours</Heading>
-      <Box fill="horizontal" direction="row" gap="medium" fill="horizontal">
+      <Box fill="horizontal" direction="row" gap="medium">
         {_.entries(users).map(item => {
           if (item[0] === "undefined") {
             return null;
@@ -82,6 +82,13 @@ const StateLabel = ({ state }) => (
 );
 
 const Task = ({ task, index }) => {
+  let partner = "";
+
+  if (task.partner_id) {
+    partner = task.partner_id.name;
+  } else if (task.project_id) {
+    partner = task.project_id.partner_id ? task.project_id.partner_id.name : "";
+  }
   return (
     <Draggable draggableId={`task-${task.id}`} index={index}>
       {(provided) =>
@@ -101,7 +108,7 @@ const Task = ({ task, index }) => {
               {task.name}
             </Heading>
             <Button size="small" as="a" label="View in ERP" target="_blank" href={`http://10.246.0.198:8000/form/view?model=project.task&id=${task.id}`} />
-            <Text size="xsmall">{task.partner_id ? task.partner_id.name : ''}</Text>
+            <Text size="xsmall">{partner}</Text>
           </CardHeader>
           <CardBody>
           <Text size="xsmall" textAlign="center">
@@ -207,7 +214,7 @@ const Board = ({ props }) => {
 
   useEffect(() => {
     async function fetchTasks(stageId) {
-      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,date_start,state,effective_hours,planned_hours,date_deadline,partner_id.name&order=date_deadline asc`);
+      const result = await ApiClient.get(`/ProjectTask?filter=[('stage_id','=',${stageId}),('team_id','=',${id})]&schema=name,user_id.name,date_start,state,effective_hours,planned_hours,date_deadline,partner_id.name,project_id.name,project_id.partner_id.name&order=date_deadline asc`);
       return result.data.items;
     }
 
