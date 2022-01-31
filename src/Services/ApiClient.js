@@ -2,7 +2,7 @@ import axios from "axios";
 import { Auth } from "../Components/Auth";
 
 const ApiClient = axios.create({
-  baseURL: 'http://10.246.0.198:8067'
+  baseURL: process.env.REACT_APP_API_ENDPOINT
 });
 
 ApiClient.interceptors.request.use((request) => {
