@@ -135,7 +135,7 @@ const Task = ({ task, index }) => {
                 </Box>
                 <Box align="center" justify="between" direction="row" gap="small">
                   <Button size="small" label="Details" onClick={handleOpenModal}/>
-                  <Button size="small" as="a" label="Go to ERP" target="_blank" href={`http://localhost:3000/form/view?model=project.task&id=${task.id}`}/>
+                  <Button size="small" as="a" label="Go to ERP" target="_blank" href={`http://10.246.0.198:80/form/view?model=project.task&id=${task.id}`}/>
                 </Box>
               </Box>
               <Heading level="4" gap="xxsmall" pad="xsmall">
