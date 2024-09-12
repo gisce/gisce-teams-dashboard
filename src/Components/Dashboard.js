@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ApiClient from "../Services/ApiClient";
 import _ from "lodash";
 import { Grommet, Group, Update, Columns } from "grommet-icons";
@@ -7,20 +7,11 @@ import {
   Box, Grid, Card, CardHeader, Heading, CardBody, Meter,
   Paragraph, CardFooter, Text, Spinner, Button
 } from "grommet";
-
-
-export const graphColors = {
-  "Backlog": "graph-0",
-  "Catch-and-fire": "status-critical",
-  "Current IT": "graph-1",
-  "Doing": "graph-2",
-  "Done": "graph-3",
-  "undefined": "accent-4",
-  "Archive": "graph-4"
-}
+import {ColorContext} from "../Contexts/ColorContext";
 
 
 const TeamCard = ({ id, name, members }) => {
+  const graphColors = useContext(ColorContext);
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const history = useHistory();
@@ -83,7 +74,7 @@ const TeamCard = ({ id, name, members }) => {
 
 
 const Dashboard = ({ props }) => {
-  const [teams, setTeams] = useState([]); 
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,19 +82,17 @@ const Dashboard = ({ props }) => {
       try {
         const result = await ApiClient.get("/ProjectTeam?schema=name,member_ids");
         setTeams(result.data.items);
-      }
-      catch (exc) {
+      } catch (exc) {
         console.log(exc);
-      }
-      finally {
+      } finally {
         setLoading(false);
       }
     }
     fetchData();
-
-  }, [loading])
+  }, [loading]);
 
   const teamCards = teams.map(team => <TeamCard key={team.id} id={team.id} name={team.name} members={team.member_ids} />);
+
   return (
     <Box fill="vertical" overflow="auto" align="center" flex="grow" pad="medium">
       <Box align="end" justify="center" fill="horizontal" pad="medium">
@@ -117,7 +106,7 @@ const Dashboard = ({ props }) => {
         {teamCards}
       </Grid>
     </Box>
-  )
-}
+  );
+};
 
 export default Dashboard;
